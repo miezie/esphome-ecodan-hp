@@ -18,20 +18,38 @@ CONFIG_SCHEMA = cv.Schema(
                 cv.Required("get_status_func"): cv.string,
                 cv.Required("target_temp_func"): cv.string,
                 cv.Required("get_target_temp_func"): cv.string,
-                cv.Optional("heating_switch_func"): cv.string,
-                cv.Optional("cooling_switch_func"): cv.string,
                 cv.Optional("current_temp_func"): cv.string,
-            }).extend(cv.polling_component_schema('100ms')),
+                cv.Optional("zone_identifier"): cv.uint8_t,
+            }).extend(cv.polling_component_schema('250ms')),
+        cv.Optional("heatpump_climate_room_z1"): climate.CLIMATE_SCHEMA.extend(
+            {
+                cv.GenerateID(CONF_ID): cv.declare_id(ECODAN_CLIMATE),
+                cv.Required("get_status_func"): cv.string,
+                cv.Required("target_temp_func"): cv.string,
+                cv.Required("get_target_temp_func"): cv.string,
+                cv.Optional("current_temp_func"): cv.string,
+                cv.Optional("zone_identifier"): cv.uint8_t,
+                cv.Optional("thermostat_climate_mode"): cv.boolean,
+            }).extend(cv.polling_component_schema('250ms')),            
         cv.Optional("heatpump_climate_z2"): climate.CLIMATE_SCHEMA.extend(
             {
                 cv.GenerateID(CONF_ID): cv.declare_id(ECODAN_CLIMATE),
                 cv.Required("get_status_func"): cv.string,
                 cv.Required("target_temp_func"): cv.string,
                 cv.Required("get_target_temp_func"): cv.string,
-                cv.Optional("heating_switch_func"): cv.string,
-                cv.Optional("cooling_switch_func"): cv.string,
                 cv.Optional("current_temp_func"): cv.string,
-            }).extend(cv.polling_component_schema('100ms')),
+                cv.Optional("zone_identifier"): cv.uint8_t,
+            }).extend(cv.polling_component_schema('250ms')),
+        cv.Optional("heatpump_climate_room_z2"): climate.CLIMATE_SCHEMA.extend(
+            {
+                cv.GenerateID(CONF_ID): cv.declare_id(ECODAN_CLIMATE),
+                cv.Required("get_status_func"): cv.string,
+                cv.Required("target_temp_func"): cv.string,
+                cv.Required("get_target_temp_func"): cv.string,
+                cv.Optional("current_temp_func"): cv.string,
+                cv.Optional("zone_identifier"): cv.uint8_t,
+                cv.Optional("thermostat_climate_mode"): cv.boolean,
+            }).extend(cv.polling_component_schema('250ms')),     
         cv.Optional("heatpump_climate_dhw"): climate.CLIMATE_SCHEMA.extend(
             {
                 cv.GenerateID(CONF_ID): cv.declare_id(ECODAN_CLIMATE),
@@ -40,7 +58,7 @@ CONFIG_SCHEMA = cv.Schema(
                 cv.Required("get_target_temp_func"): cv.string,
                 cv.Optional("current_temp_func"): cv.string,
                 cv.Optional("dhw_climate_mode"): cv.boolean,
-            }).extend(cv.polling_component_schema('100ms')),                               
+            }).extend(cv.polling_component_schema('250ms')),                               
     })
 
 
@@ -56,15 +74,15 @@ async def to_code(config):
             cg.add(inst.set_status(cg.RawExpression(f'[=](void) -> const ecodan::Status& {{ {conf["get_status_func"]} }}')))
             cg.add(inst.set_target_temp_func(cg.RawExpression(f'[=](float x){{ {conf["target_temp_func"]} }}')))
             cg.add(inst.set_get_target_temp_func(cg.RawExpression(f'[=](void) -> float {{ {conf["get_target_temp_func"]} }}')))
-            
-            if "heating_switch_func" in conf:
-                cg.add(inst.set_heating_func(cg.RawExpression(f'[=](void){{ {conf["heating_switch_func"]} }}')))
-            if "cooling_switch_func" in conf:
-                cg.add(inst.set_cooling_func(cg.RawExpression(f'[=](void){{ {conf["cooling_switch_func"]} }}')))
+
             if "current_temp_func" in conf:
                 cg.add(inst.set_get_current_temp_func(cg.RawExpression(f'[=](void) -> float {{ {conf["current_temp_func"]} }}')))
             if "dhw_climate_mode" in conf:
                 cg.add(inst.set_dhw_climate_mode(True))
-            
+            if "thermostat_climate_mode" in conf:
+                cg.add(inst.set_thermostat_climate_mode(True))
+            if "zone_identifier" in conf:
+                cg.add(inst.set_zone_identifier(conf["zone_identifier"]))
+
             await cg.register_component(inst, conf)
             await climate.register_climate(inst, conf)

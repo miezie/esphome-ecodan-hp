@@ -33,6 +33,7 @@ substitutions:
   status_prohibit_cool_z1: Z1 Raff. Proibito
   status_prohibit_heating_z1: Z1 Risc. Proibito
   heatpump_climate_z1: Z1 Termostato
+  heatpump_climate_room_z1: Z1 temperatura
   z1_room_temp_target: Z1 T. Ambiente Desiderata
   z1_room_temp: Z1 T. Ambiente
   heatpump_number_z2_set_flow_temperature: Z2 C/F Mandata
@@ -41,13 +42,17 @@ substitutions:
   status_prohibit_heating_z2: Z2 Risc. Proibito
   heatpump_number_z2_set_room_temperature: Z2 T. Ambiente
   heatpump_climate_z2: Z2 Termostato
+  heatpump_climate_room_z2: Z2 temperatura
   z2_room_temp_target: Z2 T. Ambiente Desiderata
   z2_room_temp: Z2 T. Ambiente
+  mixing_tank_temp: Caldaia Mixing Tank
   boiler_flow_temp: Caldaia T. Mandata
   boiler_return_temp: Caldaia T. Ritorno
   status_booster: Riscaldatore Booster
   compressor_frequency: Freq. Compressore
   controller_version_text: Controller
+  controller_firmware_text: Controller Firmware
+  controller_datetime_text: Controller Date
   cool_consumed: En. Raff. Utilizzata
   cool_cop: COP Raff.
   cool_delivered: En. Raff. Prod. Ieri
@@ -65,6 +70,7 @@ substitutions:
   booster_heater: Risc. Booster
   immersion_and_booster_heater: Risc. Immersione e Booster
   boiler: Caldaia
+  energy_consumed_increasing: Energia Totale Consumata
   heating_consumed: En. Risc. Utilizzata
   heating_cop: COP Risc.
   heating_delivered: En. Risc. Prod. Ieri
@@ -87,6 +93,9 @@ substitutions:
   status_operation: Modalità Funzionamento
   output_power: En. Prod.
   computed_output_power: Stima En. Prod.
+  computed_cop: Stimato COP
+  daily_computed_output_power: Stima En. Prod. (Giorno)
+  daily_repported_input_power: Consumo Energetico Giornaliero Totale Segnalato
   outside_temp: T. Esterna
   hp_refrigerant_temp: T. Mandata Liq. Refr.
   hp_refrigerant_condensing_temp: T. Cond. Liq. Refr.
@@ -95,3 +104,23 @@ substitutions:
   z2_return_temp: Z2 T. Ritorno Liq. Refr.
   status_water_pump: Pompa Circolazione
   status_water_pump_2: Pompa Circolazione 2
+  status_water_pump_3: Pompa Circolazione 3
+  status_mixing_valve: Mixing Valvola Status
+  mixing_valve_step: Mixing Valvola Step
+  status_multi_zone: Stato multizona
+  status_multi_zone_idle: Oziare
+  status_multi_zone_both: Entrambi
+  status_multi_zone_zone1: Z1 funzionante
+  status_multi_zone_zone2: Z2 funzionante
+  fault_code_text: Codice di errore
+  refrigerant_error_code_text: Liq. Refr. codice di errore
+  compressor_starts: Démarrages cumulés du compresseur
+  discharge_temp: Temperatura di scarico
+  ou_liquid_pipe_temp: Temperatura tubo liquido unità esterna 1
+  ou_two_phase_pipe_temp: Unità esterna Temperatura tubo bifase
+  fan_speed: Velocità della ventola
+  ou_suction_pipe_temp: Temperatura del tubo di aspirazione dell'unità esterna
+  ou_heatsink_temp: Temperatura del dissipatore di calore dell'unità esterna
+  ou_compressor_surface_temp: Temperatura superficiale del compressore dell'unità esterna
+  super_heat_temp: Temperatura di surriscaldamento dello scarico
+  sub_cool_temp: Temperatura di sottoraffreddamento

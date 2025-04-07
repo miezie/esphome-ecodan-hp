@@ -1,29 +1,14 @@
 substitutions:
   name: ecodan-heatpump
   friendlyName: Ecodan heatpump
-# heatpump heating/cooling switch
-# available modes: HEAT_ROOM_TEMP, HEAT_FLOW_TEMP, HEAT_COMPENSATION_CURVE, COOL_ROOM_TEMP, COOL_FLOW_TEMP
-  default_heating_switch_mode: HEAT_COMPENSATION_CURVE
-  default_cooling_switch_mode: COOL_FLOW_TEMP
 
-esphome:
-  name: ${name}
-  friendly_name: ${friendlyName}
-
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  fast_connect: true
-  power_save_mode: light
-  ap:
-    ssid: "${name}"
-    password: "configesp"
-    ap_timeout: 15s
-
-captive_portal:
+# enable ota update via http request
+http_request:
+  buffer_size_tx: 20248
 
 ota:
   - platform: esphome
+  - platform: http_request
 #  password: !secret heatpump_ota_password
 
 api:
@@ -38,16 +23,19 @@ api:
 #   components: [ ecodan ]
 
 # packages:
-#  base: !include confs/base.yaml # 
-#  esp32: !include confs/esp32s3.yaml # esp32.yaml for regular board
+#  base: !include confs/base.yaml # required
+#  req: !include confs/request-codes.yaml 
+#  esp32: !include confs/esp32s3-proxy2.yaml # esp32.yaml for regular board
+#  led_status: !include confs/esp32s3-led.yaml
 #  zone1: !include confs/zone1.yaml
 # # disable if you don't want to use zone 2
-# # zone2: !include confs/zone2.yaml
+#  zone2: !include confs/zone2.yaml
 # # change language labels to -en for English or -nl for Dutch
 # # substitutions: !include confs/ecodan-labels-nl.yaml
 #  substitutions: !include confs/ecodan-labels-en.yaml
 #  svc: !include confs/server-control.yaml
 #  dbg: !include confs/debug.yaml
+#  wifi: !include confs/wifi.yaml
 
 external_components:
   - source: github://gekkekoe/esphome-ecodan-hp@main
@@ -60,8 +48,10 @@ packages:
     ref: main
     refresh: always
     files: [ 
-            confs/base.yaml,        # required
-            confs/esp32s3.yaml,     # confs/esp32.yaml, for regular board
+            confs/base.yaml,            # required
+            confs/request-codes.yaml,   # disable if your unit does not support request codes (service menu)
+            confs/esp32s3.yaml,         # confs/esp32.yaml, for regular board
+            #confs/esp32s3-led.yaml,    # atom s3 status leds
             confs/zone1.yaml,
             ## enable if you want to use zone 2
             #confs/zone2.yaml,
@@ -72,20 +62,21 @@ packages:
             #confs/ecodan-labels-fr.yaml,
             confs/server-control.yaml,
             #confs/debug.yaml,
+            confs/wifi.yaml
            ]
 
 # enable logger
 logger:
-  baud_rate: 0
+  baud_rate: 115200
   logs:
-    esp32.preferences: DEBUG
-    sensor: DEBUG
-    text_sensor: DEBUG
-    binary_sensor: DEBUG
-    switch: DEBUG
-    button: DEBUG
-    number: DEBUG
-    climate: DEBUG
+    esp32.preferences: ERROR
+    sensor: ERROR
+    text_sensor: ERROR
+    binary_sensor: ERROR
+    switch: ERROR
+    button: ERROR
+    number: ERROR
+    climate: ERROR
     component: ERROR
     ecodan.component: ERROR
 
@@ -97,3 +88,7 @@ web_server:
 ecodan:
   id: ecodan_instance
   uart_id: uart_ecodan
+# polling interval override in ms, default 500
+#  polling_interval_override: 1000
+# uncomment line below and adjust the heat constant if your system uses a water + glycol mixture
+#  specific_heat_constant_override: 3.9

@@ -13,8 +13,10 @@ from esphome.const import (
     ENTITY_CATEGORY_DIAGNOSTIC,
     STATE_CLASS_MEASUREMENT,
     STATE_CLASS_TOTAL,
+    STATE_CLASS_TOTAL_INCREASING,
     UNIT_CELSIUS,
     UNIT_HERTZ,
+    UNIT_REVOLUTIONS_PER_MINUTE,
     UNIT_HOUR,
     UNIT_KILOWATT,
     UNIT_KILOWATT_HOURS,
@@ -136,6 +138,13 @@ CONFIG_SCHEMA = cv.Schema(
             icon="mdi:waves-arrow-right",
             device_class=DEVICE_CLASS_VOLUME_FLOW_RATE,
             state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("energy_consumed_increasing"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_KILOWATT_HOURS,
+            icon="mdi:transmission-tower-export",
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_ENERGY,
+            state_class=STATE_CLASS_TOTAL_INCREASING,
         ),
         cv.Optional("cool_cop"): sensor.sensor_schema(
             icon="mdi:heat-pump-outline",
@@ -264,6 +273,13 @@ CONFIG_SCHEMA = cv.Schema(
             device_class=DEVICE_CLASS_TEMPERATURE,
             state_class=STATE_CLASS_MEASUREMENT,
         ),
+        cv.Optional("mixing_tank_temp"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:home-thermometer",
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),     
         cv.Optional("runtime"): sensor.sensor_schema(
             unit_of_measurement=UNIT_HOUR,
             icon="mdi:clock",
@@ -275,9 +291,95 @@ CONFIG_SCHEMA = cv.Schema(
         cv.Optional("heat_source"): sensor.sensor_schema(
             entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
         ),
+        cv.Optional("refrigerant_error_code"): sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_DIAGNOSTIC,
+        ),
         cv.Optional("status_heating_cooling"): sensor.sensor_schema(
             entity_category=ENTITY_CATEGORY_NONE,
             icon="mdi:thermostat",
+        ),
+        cv.Optional("status_heating_cooling_z2"): sensor.sensor_schema(
+            entity_category=ENTITY_CATEGORY_NONE,
+            icon="mdi:thermostat",
+        ),    
+        cv.Optional("status_mixing_valve"): sensor.sensor_schema(
+            icon="mdi:valve",
+            state_class=ENTITY_CATEGORY_NONE,
+        ), 
+        cv.Optional("mixing_valve_step"): sensor.sensor_schema(
+            icon="mdi:valve",
+            state_class=STATE_CLASS_MEASUREMENT
+        ),
+        cv.Optional("status_multi_zone"): sensor.sensor_schema(
+            icon="mdi:thermostat",
+            state_class=ENTITY_CATEGORY_NONE
+        ),
+        cv.Optional("compressor_starts"): sensor.sensor_schema(
+            icon="mdi:counter",
+            entity_category=ENTITY_CATEGORY_NONE,
+        ),
+        cv.Optional("discharge_temp"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:coolant-temperature",
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("ou_liquid_pipe_temp"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:coolant-temperature",
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("ou_two_phase_pipe_temp"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:coolant-temperature",
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("ou_suction_pipe_temp"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:coolant-temperature",
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("ou_heatsink_temp"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:coolant-temperature",
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("ou_compressor_surface_temp"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:coolant-temperature",
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("super_heat_temp"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:coolant-temperature",
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("sub_cool_temp"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_CELSIUS,
+            icon="mdi:coolant-temperature",
+            accuracy_decimals=1,
+            device_class=DEVICE_CLASS_TEMPERATURE,
+            state_class=STATE_CLASS_MEASUREMENT,
+        ),
+        cv.Optional("fan_speed"): sensor.sensor_schema(
+            unit_of_measurement=UNIT_REVOLUTIONS_PER_MINUTE,
+            icon="mdi:fan",
+            accuracy_decimals=0,
+            device_class=DEVICE_CLASS_FREQUENCY,
+            state_class=STATE_CLASS_MEASUREMENT,
         ),
     }
 ).extend(cv.COMPONENT_SCHEMA)
@@ -292,4 +394,5 @@ async def to_code(config):
         if id and id.type == sensor.Sensor:
             sens = await sensor.new_sensor(conf)
             cg.add(hp.register_sensor(sens, key))
-        
+            if key in ["compressor_starts", "discharge_temp", "ou_liquid_pipe_temp", "ou_two_phase_pipe_temp", "fan_speed"]:
+                cg.add(hp.enable_request_codes())

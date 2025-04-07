@@ -20,7 +20,7 @@ switch:
   - platform: template
     name: ${heatpump_switch_force_dhw}
     id: heatpump_switch_force_dhw
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: DISABLED
     optimistic: true
     turn_on_action:
       - lambda: |-
@@ -32,7 +32,7 @@ switch:
   - platform: template
     name: ${heatpump_switch_holiday}
     id: heatpump_switch_holiday
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: DISABLED
     optimistic: true
     turn_on_action:
       - lambda: |-
@@ -44,7 +44,7 @@ switch:
   - platform: template
     name: ${heatpump_switch_power_mode}
     id: heatpump_switch_power_mode
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: DISABLED
     optimistic: true
     turn_on_action:
       - lambda: |-
@@ -54,35 +54,6 @@ switch:
          id(ecodan_instance).set_power_mode(false);
 
 select:
-  - platform: template
-    name: ${heatpump_select_operating_mode}
-    id: heatpump_select_operating_mode
-    optimistic: true
-    restore_value: true
-    options:
-      - ${heat_target_temperature}
-      - ${heat_flow_temperature}
-      - ${heat_compensation_curve}
-      - ${cool_target_temperature}
-      - ${cool_flow_temperature}
-    set_action:
-      - lambda: |-
-          if (x == "${heat_target_temperature}") {
-            id(ecodan_instance).set_hp_mode(static_cast<uint8_t>(esphome::ecodan::Status::HpMode::HEAT_ROOM_TEMP));
-          }
-          else if (x == "${heat_flow_temperature}") {
-            id(ecodan_instance).set_hp_mode(static_cast<uint8_t>(esphome::ecodan::Status::HpMode::HEAT_FLOW_TEMP));
-          }
-          else if (x == "${heat_compensation_curve}") {
-            id(ecodan_instance).set_hp_mode(static_cast<uint8_t>(esphome::ecodan::Status::HpMode::HEAT_COMPENSATION_CURVE));
-          }
-          else if (x == "${cool_target_temperature}") {
-            id(ecodan_instance).set_hp_mode(static_cast<uint8_t>(esphome::ecodan::Status::HpMode::COOL_ROOM_TEMP));
-          }
-          else if (x == "${cool_flow_temperature}") {
-            id(ecodan_instance).set_hp_mode(static_cast<uint8_t>(esphome::ecodan::Status::HpMode::COOL_FLOW_TEMP));
-          }
-
   - platform: template
     name: ${heatpump_select_dhw_mode}
     id: heatpump_select_dhw_mode
@@ -102,14 +73,6 @@ select:
 
 # diagnostics
 text_sensor:
-  - platform: wifi_info
-    ip_address:
-      name: ${esp_ip}
-      icon: mdi:ip
-    ssid:
-      name: ${esp_sidd}
-      icon: mdi:wifi
-
   - platform: version
     name: ${esp_version}
     hide_timestamp: true
@@ -118,10 +81,23 @@ text_sensor:
     entity_category: diagnostic
 
   - platform: template
+    id: controller_datetime_text
+    name: ${controller_datetime_text}
+    entity_category: diagnostic
+    update_interval: 60s
+    lambda: |-
+      auto dt = id(ecodan_instance).get_status().ControllerDateTime;
+      char buffer[26];
+      //strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", &dt);
+      strftime(buffer, sizeof(buffer), "%Y-%m-%d", &dt);
+      return std::string(buffer);
+ 
+  - platform: template
     id: controller_version_text
     name: ${controller_version_text}
     icon: mdi:new-box
     entity_category: diagnostic
+    update_interval: 60s
     lambda: |-
       int value = id(controller_version).state;
       switch (value) {
@@ -130,12 +106,14 @@ text_sensor:
         case 1: return std::string("FTC4");
         case 2: return std::string("FTC5");
         case 3: return std::string("FTC6");
+        case 5: return std::string("FTC7");
         default: return std::to_string(value);
       }
 
   - platform: template
     id: heat_source_text
     name: ${heat_source_text}
+    update_interval: 60s
     lambda: |-
       int value = id(heat_source).state;
       switch (value) {
@@ -151,6 +129,7 @@ text_sensor:
   - platform: template
     id: status_operation
     name: ${status_operation}
+    update_interval: 3s
     lambda: |-
       auto value = id(ecodan_instance).get_status().Operation;
       switch (value)
@@ -161,6 +140,103 @@ text_sensor:
           case esphome::ecodan::Status::OperationMode::COOL_ON: return std::string("${cooling}");
           case esphome::ecodan::Status::OperationMode::FROST_PROTECT: return std::string("${frost_protection}");
           case esphome::ecodan::Status::OperationMode::LEGIONELLA_PREVENTION: return std::string("${legionella_prevention}");
+          case esphome::ecodan::Status::OperationMode::UNAVAILABLE:
+          default: return std::string("Unknown");
+      }
+
+  - platform: template
+    id: refrigerant_error_code_text
+    name: ${refrigerant_error_code_text}
+    entity_category: diagnostic
+    update_interval: 60s
+    icon: mdi:alert
+    lambda: |-
+      auto value = static_cast<uint8_t>(id(refrigerant_error_code).state);
+      switch (value)
+      {
+          case 0: return std::string("Normal");
+          case 1: return std::string("Error (System)");
+          case 2: return std::string("Error (Startup)");
+          case 3: return std::string("Maintenance Error");
+          default: return std::string("Unknown");
+      }
+  
+  - platform: ecodan
+    fault_code_text:
+      id: fault_code_text 
+      name: ${fault_code_text}
+      icon: mdi:alert
+      entity_category: diagnostic
+    controller_firmware_text:
+      id: controller_firmware_text
+      name: ${controller_firmware_text}
+      entity_category: diagnostic
+  
+  - platform: template
+    id: status_dip_switch_1
+    entity_category: diagnostic
+    update_interval: 60s
+    icon: mdi:toggle-switch-off-outline
+    name: Dip Switch 1 (8-1)
+    lambda: |-
+      return format_bin(static_cast<uint8_t>(id(ecodan_instance).get_status().DipSwitch1));
+  
+  - platform: template
+    id: status_dip_switch_2
+    entity_category: diagnostic
+    update_interval: 60s
+    icon: mdi:toggle-switch-off-outline
+    name: Dip Switch 2 (8-1)
+    lambda: |-
+      return format_bin(static_cast<uint8_t>(id(ecodan_instance).get_status().DipSwitch2));
+
+  - platform: template
+    id: status_dip_switch_3
+    entity_category: diagnostic
+    update_interval: 60s
+    icon: mdi:toggle-switch-off-outline
+    name: Dip Switch 3 (8-1)
+    lambda: |-
+      return format_bin(static_cast<uint8_t>(id(ecodan_instance).get_status().DipSwitch3));
+
+  - platform: template
+    id: status_dip_switch_4
+    entity_category: diagnostic
+    update_interval: 60s
+    icon: mdi:toggle-switch-off-outline
+    name: Dip Switch 4 (8-1)
+    lambda: |-
+      return format_bin(static_cast<uint8_t>(id(ecodan_instance).get_status().DipSwitch4));
+
+  - platform: template
+    id: status_dip_switch_5
+    entity_category: diagnostic
+    update_interval: 60s
+    icon: mdi:toggle-switch-off-outline
+    name: Dip Switch 5 (8-1)
+    lambda: |-
+      return format_bin(static_cast<uint8_t>(id(ecodan_instance).get_status().DipSwitch5));
+
+  - platform: template
+    id: status_dip_switch_6
+    entity_category: diagnostic
+    update_interval: 60s
+    icon: mdi:toggle-switch-off-outline
+    name: Dip Switch 6 (8-1)
+    lambda: |-
+      return format_bin(static_cast<uint8_t>(id(ecodan_instance).get_status().DipSwitch6));
+
+  - platform: template
+    id: status_multi_zone
+    name: ${status_multi_zone}
+    lambda: |-
+      auto value = id(ecodan_instance).get_status().MultiZoneStatus;
+      switch (value)
+      {
+          case 0: return std::string("${status_multi_zone_idle}");
+          case 1: return std::string("${status_multi_zone_both}");
+          case 2: return std::string("${status_multi_zone_zone1}");
+          case 3: return std::string("${status_multi_zone_zone2}");
           default: return std::string("Unknown");
       }
 
@@ -183,7 +259,7 @@ sensor:
       name: ${output_power} 
     computed_output_power:
       id: computed_output_power
-      name: ${computed_output_power}      
+      name: ${computed_output_power}
     outside_temp:
       id: outside_temp
       name: ${outside_temp}
@@ -204,7 +280,10 @@ sensor:
       name: ${boiler_flow_temp}
     boiler_return_temp:
       id: boiler_return_temp
-      name: ${boiler_return_temp}      
+      name: ${boiler_return_temp}
+    mixing_tank_temp:
+      id: mixing_tank_temp
+      name: ${mixing_tank_temp}   
     dhw_temp:
       id: dhw_temp
       name: ${dhw_temp}
@@ -240,40 +319,90 @@ sensor:
     dhw_consumed:
       name: ${dhw_consumed}
     dhw_delivered:
-      name: ${dhw_delivered}    
-
-    status_heating_cooling:
-      id: status_heating_cooling
-      name: H/C status
+      name: ${dhw_delivered}
+    refrigerant_error_code:
       internal: true
-      on_value:
-        if:
-          condition:
-            - lambda: |-
-                auto mode = static_cast<uint8_t>(id(ecodan_instance).get_status().HeatingCoolingMode);
-                auto index = id(heatpump_select_operating_mode).active_index();
-                return (index.has_value() && index.value() != mode);
-          then:
-            - select.set_index:
-                id: heatpump_select_operating_mode
-                index: !lambda "return static_cast<uint8_t>(id(ecodan_instance).get_status().HeatingCoolingMode);"
-
-  - platform: wifi_signal # Reports the WiFi signal strength/RSSI in dB
-    name: ${wifi_signal_db}
-    id: wifi_signal_db
-    update_interval: 5s
-    entity_category: diagnostic
-
-  - platform: copy # Reports the WiFi signal strength in %
-    source_id: wifi_signal_db
-    name: ${wifi_signal_proc}
-    id: wifi_signal_proc
+      id: refrigerant_error_code
+    energy_consumed_increasing:
+      internal: true
+      id: energy_consumed_increasing
+      name: ${energy_consumed_increasing}
+  - platform: copy
+    source_id: energy_consumed_increasing
+    id: delta_energy_consumed_increasing
+    name: ${daily_repported_input_power}
+    unit_of_measurement: 'kWh'
+    state_class: total_increasing
     filters:
-      - lambda: return min(max(2 * (x + 100.0), 0.0), 100.0);
-    unit_of_measurement: " %"
-    entity_category: diagnostic
-    device_class: ""
-    icon: mdi:wifi
+      - lambda: |-
+          static float last_value = 0.0;
+          static float partial_sum = 0.0;
+          static uint16_t last_day_of_year = 0;
+
+          auto t = id(sntp_time).now();
+          if (!t.is_valid())
+            return {};
+
+          if (last_value == 0) {
+            last_value = x;
+            last_day_of_year = t.day_of_year;
+            return partial_sum;
+          }
+
+          if (t.day_of_year != last_day_of_year) {
+            last_day_of_year = t.day_of_year;
+            partial_sum = 0.0f;
+          }
+
+          partial_sum += x >= last_value ? (x - last_value) : (65536 + x - last_value);
+          last_value = x;
+          return partial_sum;
+  
+  - platform: template
+    id: computed_cop
+    name: ${computed_cop}
+    state_class: measurement
+    accuracy_decimals: 2
+    update_interval: 10s
+    lambda: |-
+      auto status = id(ecodan_instance).get_status();
+
+      // sample every 10s      
+      static float production = 0.0f;
+      static float last_input_value = 0.0f;
+      static bool valid_production = false;
+      
+      if (status.CompressorFrequency == 0.0f) {
+        // only calculate COP when comnpressor is active
+        production = 0.0f;
+        last_input_value = 0.0f;
+        valid_production = false;
+        return 0.0f;
+      }
+
+      production += status.ComputedOutputPower * 10.0 / (60.0*60.0);
+      //ESP_LOGE("ecodan.component", "last: %f, production: %f, raw: %f", last_input_value, production, status.ComputedOutputPower);
+
+      if (last_input_value == 0.0f) {
+        last_input_value = status.EnergyConsumedIncreasing;
+        valid_production = false;
+        return {};
+
+      } else if (last_input_value == status.EnergyConsumedIncreasing) {
+        // no COP change
+        return {};
+
+      } else {
+        // EnergyConsumedIncreasing is reported every ~5mins
+        float consumed = status.EnergyConsumedIncreasing >= last_input_value 
+          ? (status.EnergyConsumedIncreasing - last_input_value) : (65536 + status.EnergyConsumedIncreasing - last_input_value);
+
+          float cop = (valid_production || consumed == 0.0f) ? (production / consumed) : 0.0f;
+          valid_production = true;
+          production = 0.0f;
+          last_input_value = status.EnergyConsumedIncreasing;
+          return cop;
+      }
 
   - platform: uptime
     name: ${uptime}
@@ -287,6 +416,19 @@ sensor:
     entity_category: diagnostic
     update_interval: 5s
 
+  - platform: total_daily_energy
+    name: ${daily_computed_output_power}
+    power_id: computed_output_power
+    unit_of_measurement: 'kWh'
+    state_class: total
+    device_class: energy
+    accuracy_decimals: 3
+
+# Enable time component to reset energy at midnight
+time:
+  - platform: sntp
+    id: sntp_time
+
 binary_sensor:
   - platform: ecodan
     status_holiday:
@@ -299,8 +441,9 @@ binary_sensor:
               - binary_sensor.is_off: status_holiday
               - switch.is_on: heatpump_switch_holiday
           then:
-            - switch.turn_off:
+            - switch.template.publish:
                 id: heatpump_switch_holiday
+                state: OFF
           else:
             if:
               condition:
@@ -308,8 +451,9 @@ binary_sensor:
                   - binary_sensor.is_on: status_holiday
                   - switch.is_off: heatpump_switch_holiday
               then:
-                - switch.turn_on:
-                    id: heatpump_switch_holiday      
+                - switch.template.publish:
+                    id: heatpump_switch_holiday
+                    state: ON
     status_dhw_forced:
       name: ${status_dhw_forced}
       id: status_dhw_forced
@@ -320,8 +464,9 @@ binary_sensor:
               - binary_sensor.is_off: status_dhw_forced
               - switch.is_on: heatpump_switch_force_dhw
           then:
-            - switch.turn_off:
+            - switch.template.publish:
                 id: heatpump_switch_force_dhw
+                state: OFF
           else:
             if:
               condition:
@@ -329,8 +474,9 @@ binary_sensor:
                   - binary_sensor.is_on: status_dhw_forced
                   - switch.is_off: heatpump_switch_force_dhw
               then:
-                - switch.turn_on:
+                - switch.template.publish:
                     id: heatpump_switch_force_dhw
+                    state: ON
     status_power:
       internal: true
       id: status_power
@@ -341,8 +487,9 @@ binary_sensor:
               - binary_sensor.is_on: status_power
               - switch.is_off: heatpump_switch_power_mode
           then:
-            - switch.turn_on:
+            - switch.template.publish:
                 id: heatpump_switch_power_mode
+                state: ON
           else:
             if:
               condition:
@@ -350,8 +497,9 @@ binary_sensor:
                   - binary_sensor.is_off: status_power
                   - switch.is_on: heatpump_switch_power_mode
               then:
-                - switch.turn_off:
-                    id: heatpump_switch_power_mode 
+                - switch.template.publish:
+                    id: heatpump_switch_power_mode
+                    state: OFF
     status_dhw_eco:
       id: status_dhw_eco 
       name: ${status_dhw_eco}
@@ -362,6 +510,9 @@ binary_sensor:
     status_booster:
       id: status_booster
       name: ${status_booster}
+    status_booster_2:
+      id: status_booster_2
+      name: ${status_booster} 2
     status_immersion:
       id: status_immersion
       name: ${status_immersion}

@@ -33,6 +33,7 @@ substitutions:
   status_prohibit_cool_z1: Status zone 1 verboden koelen
   status_prohibit_heating_z1: Status zone 1 verboden verwarmen
   heatpump_climate_z1: Zone 1 Thermostaat
+  heatpump_climate_room_z1: Zone 1 temperatuur
   z1_room_temp_target: Zone 1 ruimte setpoint waarde
   z1_room_temp: Zone 1 ruimte temp
   heatpump_number_z2_set_flow_temperature: Zone 2 flow setpoint
@@ -41,13 +42,17 @@ substitutions:
   status_prohibit_heating_z2: Status zone 2 verboden verwarmen
   heatpump_number_z2_set_room_temperature: Zone 2 ruimte setpoint
   heatpump_climate_z2: Zone 2 Thermostaat
+  heatpump_climate_room_z2: Zone 2 temperatuur
   z2_room_temp_target: Zone 2 ruimte setpoint waarde
   z2_room_temp: Zone 2 ruimte temp
+  mixing_tank_temp: Mixing Tank Temp
   boiler_flow_temp: Boiler aanvoer temp
   boiler_return_temp: Boiler retour temp
   status_booster: Status booster heater
   compressor_frequency: Kompressor frequentie
   controller_version_text: Controller versie
+  controller_firmware_text: Controller Firmware
+  controller_datetime_text: Controller Datum
   cool_consumed: Koelen verbruikt
   cool_cop: Koelen cop
   cool_delivered: Koelen geleverd
@@ -65,6 +70,7 @@ substitutions:
   booster_heater: booster heater
   immersion_and_booster_heater: immersion and booster heater
   boiler: boiler
+  energy_consumed_increasing: Totaal verbruikt
   heating_consumed: Verwarmen verbruikt
   heating_cop: Verwarmen cop
   heating_delivered: Verwarmen geleverd
@@ -87,6 +93,9 @@ substitutions:
   status_operation: Status Bedrijf
   output_power: Afgegeven vermogen
   computed_output_power: Geschatte afgegeven vermogen
+  computed_cop: Geschatte COP
+  daily_computed_output_power: Geschatte afgegeven vermogen (Per dag)
+  daily_repported_input_power: Gerapporteerde opgenomen vermogen (Per dag)
   outside_temp: Buiten temp
   hp_refrigerant_temp: Koelmiddel temp
   hp_refrigerant_condensing_temp: Koelmiddel condensatie temp
@@ -95,3 +104,23 @@ substitutions:
   z2_return_temp: Z2 Retour temp
   status_water_pump: Status water pomp
   status_water_pump_2: Status water pomp 2
+  status_water_pump_3: Status water pomp 3
+  status_mixing_valve: Mixing Valve Status
+  mixing_valve_step: Mixing Valve Stap
+  status_multi_zone: Multizonestatus
+  status_multi_zone_idle: Inactief
+  status_multi_zone_both: Beide actief
+  status_multi_zone_zone1: Z1 actief
+  status_multi_zone_zone2: Z2 actief
+  fault_code_text: Fout code
+  refrigerant_error_code_text: Koelmiddel fout code
+  compressor_starts: Compressor Starts
+  discharge_temp: Ontladingstemperatuur
+  ou_liquid_pipe_temp: Buitenunit Vloeistofleiding 1
+  ou_two_phase_pipe_temp: Buitenunit Tweefasenbuistemperatuur
+  fan_speed: Ventilatorsnelheid
+  ou_suction_pipe_temp: Buitenunit aanzuig leiding temperatuur
+  ou_heatsink_temp: Buitenunit koellichaam temperatuur
+  ou_compressor_surface_temp: Buitenunit Compressor Oppervlakte temperatuur
+  super_heat_temp: Discharge Superheat temperatuur
+  sub_cool_temp: Subcooling temperatuur

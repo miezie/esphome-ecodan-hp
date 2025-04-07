@@ -33,6 +33,7 @@ substitutions:
   status_prohibit_cool_z1: Zone 1 Prohibit Cooling Status
   status_prohibit_heating_z1: Zone 1 Prohibit Heating
   heatpump_climate_z1: Zone 1 Climate
+  heatpump_climate_room_z1: Zone 1 Temperature
   z1_room_temp_target: Zone 1 Room Setpoint Value
   z1_room_temp: Zone 1 Room Temp
   heatpump_number_z2_set_flow_temperature: Zone 2 H/C setpoint
@@ -41,13 +42,17 @@ substitutions:
   status_prohibit_heating_z2: Zone 2 Prohibit Heating
   heatpump_number_z2_set_room_temperature: Zone 2 Room Setpoint
   heatpump_climate_z2: Zone 2 Climate
+  heatpump_climate_room_z2: Zone 2 Temperature
   z2_room_temp_target: Zone 2 Room Setpoint Value
   z2_room_temp: Zone 2 Room Temp
+  mixing_tank_temp: Mixing Tank Temp
   boiler_flow_temp: Boiler Flow Temp
   boiler_return_temp: Boiler Return Temp
   status_booster: Booster Heater
   compressor_frequency: Compressor Frequency
   controller_version_text: Controller Version
+  controller_firmware_text: Controller Firmware
+  controller_datetime_text: Controller Date
   cool_consumed: Cool Consumed
   cool_cop: Cool COP
   cool_delivered: Cool Delivered
@@ -65,6 +70,7 @@ substitutions:
   booster_heater: Booster Heater
   immersion_and_booster_heater: Immersion and Booster Heater
   boiler: Boiler
+  energy_consumed_increasing: Total Energy Consumed
   heating_consumed: Heating Consumed
   heating_cop: Heating COP
   heating_delivered: Heating Delivered
@@ -87,6 +93,9 @@ substitutions:
   status_operation: Operation Mode
   output_power: Output Power
   computed_output_power: Estimated Output Power
+  computed_cop: Estimated COP
+  daily_computed_output_power: Estimated Total Daily Energy Produced
+  daily_repported_input_power: Reported Total Daily Energy Consumption
   outside_temp: Outside Temp
   hp_refrigerant_temp: Refrigerant Liquid Temp
   hp_refrigerant_condensing_temp: Refrigerant Condensing Temp
@@ -95,3 +104,23 @@ substitutions:
   z2_return_temp: Z2 Return Temp 
   status_water_pump: Water Pump Status
   status_water_pump_2: Water Pump 2 Status
+  status_water_pump_3: Water Pump 3 Status
+  status_mixing_valve: Mixing Valve Status
+  mixing_valve_step: Mixing Valve Step
+  status_multi_zone: Multi Zone Status
+  status_multi_zone_idle: Idle
+  status_multi_zone_both: Both
+  status_multi_zone_zone1: Z1 Working
+  status_multi_zone_zone2: Z2 Working
+  fault_code_text: Fault code
+  refrigerant_error_code_text: Refrigerant error code
+  compressor_starts: Accumulated Compressor Starts
+  discharge_temp: Discharge Temp
+  ou_liquid_pipe_temp: Outside Unit Liquid Pipe 1 Temp
+  ou_two_phase_pipe_temp: Outside Unit Two Phase Pipe Temp
+  ou_suction_pipe_temp: Outside Unit Suction Pipe Temp
+  ou_heatsink_temp: Outside Unit Heatsink Temp
+  ou_compressor_surface_temp: Outside Unit Compressor Surface Temp
+  super_heat_temp: Discharge Superheat Temp
+  sub_cool_temp: Subcooling Temp
+  fan_speed: Fan Speed

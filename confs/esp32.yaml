@@ -6,10 +6,6 @@ esp32:
     # Custom sdkconfig options
     sdkconfig_options:
       COMPILER_OPTIMIZATION_SIZE: y
-    # Advanced tweaking options
-    advanced:
-      ignore_efuse_mac_crc: false
-
 
 uart:
   id: uart_ecodan
@@ -33,7 +29,7 @@ uart:
   #   sequence:
   #     - lambda: UARTDebug::log_hex(direction, bytes, ' ');
 
-  sensor:
+sensor:
   - platform: internal_temperature
     name: ${internal_esp_temperature}
     entity_category: diagnostic

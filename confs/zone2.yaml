@@ -1,3 +1,6 @@
+substitutions:
+  zone_identifier_z1: "2"
+
 binary_sensor:
   - platform: ecodan
     status_prohibit_heating_z2:
@@ -9,15 +12,16 @@ binary_sensor:
     status_three_way_valve_2:
       id: status_three_way_valve_2
       name: ${status_three_way_valve_2}
-    status_water_pump_2:
-      id: status_water_pump_2
-      name: ${status_water_pump_2}
+    status_water_pump_3:
+      id: status_water_pump_3
+      name: ${status_water_pump_3}
 
 climate:
   - platform: ecodan
     heatpump_climate_z2:
       name: ${heatpump_climate_z2}
       id: heatpump_climate_z2
+      zone_identifier: 3
       get_status_func: |-
         return id(ecodan_instance).get_status();
       get_target_temp_func: |-
@@ -51,10 +55,6 @@ climate:
             default:
               break;
         }
-      heating_switch_func: |-
-        id(ecodan_instance).set_hp_mode(static_cast<uint8_t>(esphome::ecodan::Status::HpMode::${default_heating_switch_mode}));
-      cooling_switch_func: |-
-        id(ecodan_instance).set_hp_mode(static_cast<uint8_t>(esphome::ecodan::Status::HpMode::${default_cooling_switch_mode}));
       current_temp_func: |-
         auto& status = id(ecodan_instance).get_status();
         auto mode = status.HeatingCoolingMode;
@@ -71,6 +71,21 @@ climate:
             default:
               return NAN;                    
         } 
+    heatpump_climate_room_z2:
+      name: ${heatpump_climate_room_z2}
+      id: heatpump_climate_room_z2
+      thermostat_climate_mode: true
+      zone_identifier: 3
+      get_status_func: |-
+        return id(ecodan_instance).get_status();
+      get_target_temp_func: |-
+        auto& status = id(ecodan_instance).get_status();
+        return status.Zone2SetTemperature;
+      target_temp_func: |-
+        id(ecodan_instance).set_room_temperature(x, esphome::ecodan::SetZone::ZONE_2);
+      current_temp_func: |-
+        auto& status = id(ecodan_instance).get_status();
+        return status.Zone2RoomTemperature;
 
 sensor:
   - platform: ecodan
@@ -89,3 +104,45 @@ sensor:
     z2_return_temp:
       id: z2_return_temp
       name: ${z2_return_temp}
+    mixing_valve_step:
+      id: mixing_valve_step
+      name: ${mixing_valve_step}
+    status_mixing_valve:
+      id: status_mixing_valve
+      name: ${status_mixing_valve}
+
+    status_heating_cooling_z2:
+      id: status_heating_cooling_z2
+      name: H/C status z2
+      internal: true
+      on_value:
+        if:
+          condition:
+            - lambda: |-
+                auto mode = static_cast<uint8_t>(id(ecodan_instance).get_status().HeatingCoolingModeZone2);
+                auto index = id(heatpump_select_operating_mode_z2).active_index();
+                return (index.has_value() && index.value() != mode);
+          then:
+            - select.set_index:
+                id: heatpump_select_operating_mode_z2
+                index: !lambda "return static_cast<uint8_t>(id(ecodan_instance).get_status().HeatingCoolingModeZone2);"
+
+select:
+  - platform: template
+    name: z2 ${heatpump_select_operating_mode}
+    id: heatpump_select_operating_mode_z2
+    optimistic: true
+    restore_value: true
+    options:
+      - ${heat_target_temperature}
+      - ${heat_flow_temperature}
+      - ${heat_compensation_curve}
+      - ${cool_target_temperature}
+      - ${cool_flow_temperature}
+    set_action:
+      - lambda: |-
+          auto index = id(heatpump_select_operating_mode_z2).index_of(x);
+          auto active_index = id(heatpump_select_operating_mode_z2).active_index();
+          if (index.has_value() && index.value() != active_index.value()) {
+            id(ecodan_instance).set_hp_mode(static_cast<uint8_t>(index.value()), esphome::ecodan::SetZone::ZONE_2);
+          }

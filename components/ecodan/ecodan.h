@@ -40,6 +40,10 @@ namespace ecodan
             binarySensors[key] = obj;
         }
 
+        void enable_request_codes() {
+            hasRequestCodeSensors = true;
+        }
+
         // exposed as external component commands
         void set_room_temperature(float value, esphome::ecodan::SetZone zone);
         void set_flow_target_temperature(float value, esphome::ecodan::SetZone zone);
@@ -48,8 +52,11 @@ namespace ecodan
         void set_dhw_force(bool on);
         void set_holiday(bool on);
         void set_power_mode(bool on);
-        void set_hp_mode(int mode);
+        void set_hp_mode(uint8_t mode, esphome::ecodan::SetZone zone);
         void set_controller_mode(CONTROLLER_FLAG flag, bool on);
+        void set_mrc_mode(Status::MRC_FLAG flag);
+        void set_specific_heat_constant(float newConstant) { specificHeatConstantOverride = newConstant; }
+        void set_polling_interval(uint32_t ms) { this->set_update_interval(ms); }
         void set_uart_parent(uart::UARTComponent *uart) { this->uart_ = uart; }
         void set_proxy_uart(uart::UARTComponent *uart) { this->proxy_uart_ = uart; }
         const Status& get_status() const { return status; }
@@ -76,27 +83,33 @@ namespace ecodan
         uart::UARTComponent *proxy_uart_ = nullptr;
         Message res_buffer_;
         Message proxy_buffer_;
+        int rx_sync_fail_count = 0;
 
         Status status;
         float temperatureStep = 0.5f;
+        float specificHeatConstantOverride {NAN};
         bool connected = false;
         bool heatpumpInitialized = false;
         
+        bool hasRequestCodeSensors = false;
+        Status::REQUEST_CODE activeRequestCode = Status::REQUEST_CODE::NONE;
         std::queue<Message> cmdQueue;
 
-        void resync_rx();
-        bool serial_rx(uart::UARTComponent *uart, Message& msg);
+        bool serial_rx(uart::UARTComponent *uart, Message& msg, bool count_sync_errors = false);
         bool serial_tx(uart::UARTComponent *uart, Message& msg);
 
         bool dispatch_next_status_cmd();
-        bool dispatch_next_set_cmd();
+        bool dispatch_next_cmd();
         bool schedule_cmd(Message& cmd);
+        bool handle_active_request_codes();
         
-        void handle_response();
+        void handle_response(Message& res);
         void handle_get_response(Message& res);
         void handle_set_response(Message& res);
         void handle_connect_response(Message& res);
-        void handle_proxy();
+
+        void proxy_ping();
+        bool proxy_available();
     };
 
     class EcodanClimate : public climate::Climate, public PollingComponent  {
@@ -111,18 +124,18 @@ namespace ecodan
         void set_target_temp_func(std::function<void(float)> target_temp_func) { set_target_temp = target_temp_func; };
         void set_get_current_temp_func(std::function<float(void)> current_temp_func) { get_current_temp = current_temp_func; };
         void set_get_target_temp_func(std::function<float(void)> target_temp_func) { get_target_temp = target_temp_func; };
-        void set_cooling_func(std::function<void(void)> switch_cooling_func) { set_cooling_mode = switch_cooling_func; };
-        void set_heating_func(std::function<void(void)> switch_heating_func) { set_heating_mode = switch_heating_func; };
         void set_status(std::function<const ecodan::Status& (void)> get_status_func) { get_status = get_status_func; };
         void set_dhw_climate_mode(bool mode) { this->dhw_climate_mode = mode; }
+        void set_thermostat_climate_mode(bool mode) { this->thermostat_climate_mode = mode; }
+        void set_zone_identifier(uint8_t zone_identifier) { this->climate_zone_identifier = static_cast<ClimateZoneIdentifier>(zone_identifier); }
     private:
         std::function<void(float)> set_target_temp = nullptr;
         std::function<float(void)> get_current_temp = nullptr;
         std::function<float(void)> get_target_temp = nullptr;
-        std::function<void(void)> set_cooling_mode = nullptr;
-        std::function<void(void)> set_heating_mode = nullptr;
         std::function<const ecodan::Status& (void)> get_status = nullptr;
         bool dhw_climate_mode = false;
+        bool thermostat_climate_mode = false;
+        ClimateZoneIdentifier climate_zone_identifier = ClimateZoneIdentifier::SINGLE_ZONE;
 
         void refresh();
         void validate_target_temperature();

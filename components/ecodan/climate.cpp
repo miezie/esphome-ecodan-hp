@@ -9,6 +9,8 @@ namespace ecodan
         if (restore.has_value()) {
             restore->to_call(this).perform();
         }
+        // allow updates on first start
+        this->last_update = std::chrono::steady_clock::now() - std::chrono::seconds(2*60);
     }
 
     void EcodanClimate::refresh() {
@@ -48,10 +50,6 @@ namespace ecodan
                 case ecodan::Status::HpMode::HEAT_FLOW_TEMP:
                 case ecodan::Status::HpMode::HEAT_COMPENSATION_CURVE:
                     if (this->mode != climate::ClimateMode::CLIMATE_MODE_HEAT && allow_refresh) {
-                        if (this->set_heating_mode != nullptr) {
-                            this->last_update = std::chrono::steady_clock::now();
-                            this->set_heating_mode();
-                        }
                         this->mode = climate::ClimateMode::CLIMATE_MODE_HEAT;
                         should_publish = true;
                     }
@@ -59,10 +57,6 @@ namespace ecodan
                 case ecodan::Status::HpMode::COOL_ROOM_TEMP:
                 case ecodan::Status::HpMode::COOL_FLOW_TEMP:
                     if (this->mode != climate::ClimateMode::CLIMATE_MODE_COOL && allow_refresh) {
-                        if (this->set_cooling_mode != nullptr) {
-                            this->last_update = std::chrono::steady_clock::now();
-                            this->set_cooling_mode();
-                        }
                         this->mode = climate::ClimateMode::CLIMATE_MODE_COOL;
                         should_publish = true;
                     } 
@@ -84,11 +78,20 @@ namespace ecodan
             {
                 case Status::OperationMode::HEAT_ON:
                 case Status::OperationMode::FROST_PROTECT:
-                        new_action = climate::CLIMATE_ACTION_HEATING;
+                    if (this->climate_zone_identifier == ClimateZoneIdentifier::SINGLE_ZONE
+                        || static_cast<uint8_t>(ClimateZoneIdentifier::MULTI_ZONE_BOTH) == status.MultiZoneStatus
+                        || static_cast<uint8_t>(this->climate_zone_identifier) == status.MultiZoneStatus) {                
+                            new_action = climate::CLIMATE_ACTION_HEATING;
+                        }
                     break;
                 case ecodan::Status::OperationMode::COOL_ON:
-                        new_action = climate::CLIMATE_ACTION_COOLING;
+                     if (this->climate_zone_identifier == ClimateZoneIdentifier::SINGLE_ZONE
+                        || static_cast<uint8_t>(ClimateZoneIdentifier::MULTI_ZONE_BOTH) == status.MultiZoneStatus
+                        || static_cast<uint8_t>(this->climate_zone_identifier) == status.MultiZoneStatus) {                
+                            new_action = climate::CLIMATE_ACTION_COOLING;
+                        }               
                     break;
+                case ecodan::Status::OperationMode::UNAVAILABLE:
                 case ecodan::Status::OperationMode::OFF:
                 case ecodan::Status::OperationMode::DHW_ON:
                 case ecodan::Status::OperationMode::LEGIONELLA_PREVENTION:
@@ -117,36 +120,35 @@ namespace ecodan
         bool should_publish = false;
 
         if (this->get_current_temp != nullptr) {
-            this->current_temperature = this->get_current_temp();
-            should_publish = true;
-        }
-
-        if (call.get_mode().has_value()) {
-            // User requested mode change
-            climate::ClimateMode mode = *call.get_mode();
-            
-            if (this->mode != mode) {
-                this->mode = mode;
-                switch (mode) {
-                    case climate::ClimateMode::CLIMATE_MODE_HEAT:
-                        if (this->set_heating_mode != nullptr)
-                            this->set_heating_mode();
-                    break;
-                    case climate::ClimateMode::CLIMATE_MODE_COOL:
-                        if (this->set_cooling_mode != nullptr)
-                            this->set_cooling_mode();
-                    break;                    
-                    case climate::ClimateMode::CLIMATE_MODE_HEAT_COOL:
-                    case climate::ClimateMode::CLIMATE_MODE_FAN_ONLY:
-                    case climate::ClimateMode::CLIMATE_MODE_OFF:
-                    case climate::ClimateMode::CLIMATE_MODE_DRY:
-                    case climate::ClimateMode::CLIMATE_MODE_AUTO:
-                    break;
-                }
-                // Publish updated state
+            float current_temp = this->get_current_temp();
+            if (current_temp != this->current_temperature) {
+                this->current_temperature = current_temp;
                 should_publish = true;
             }
         }
+
+        // if (call.get_mode().has_value()) {
+        //     // User requested mode change
+        //     climate::ClimateMode mode = *call.get_mode();
+            
+        //     if (this->mode != mode) {
+        //         this->mode = mode;
+        //         switch (mode) {
+        //             case climate::ClimateMode::CLIMATE_MODE_HEAT:
+        //             break;
+        //             case climate::ClimateMode::CLIMATE_MODE_COOL:
+        //             break;                    
+        //             case climate::ClimateMode::CLIMATE_MODE_HEAT_COOL:
+        //             case climate::ClimateMode::CLIMATE_MODE_FAN_ONLY:
+        //             case climate::ClimateMode::CLIMATE_MODE_OFF:
+        //             case climate::ClimateMode::CLIMATE_MODE_DRY:
+        //             case climate::ClimateMode::CLIMATE_MODE_AUTO:
+        //             break;
+        //         }
+        //         // Publish updated state
+        //         should_publish = true;
+        //     }
+        // }
         
 
         if (call.get_target_temperature().has_value()) {
@@ -180,10 +182,14 @@ namespace ecodan
             traits.set_visual_min_temperature(40);
             traits.set_visual_max_temperature(60);
         }
+        else if(this->thermostat_climate_mode) {
+            traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_HEAT, climate::CLIMATE_MODE_COOL});
+            traits.set_visual_min_temperature(8);
+            traits.set_visual_max_temperature(28);
+        }
         else 
         {
             traits.set_supported_modes({climate::CLIMATE_MODE_OFF, climate::CLIMATE_MODE_HEAT, climate::CLIMATE_MODE_COOL});
-            
             // dynamic adjustment in esphome works, but does not seem to progagate to HA
             // auto is_cooling = this->mode == climate::ClimateMode::CLIMATE_MODE_COOL;
             // traits.set_visual_min_temperature(is_cooling ? 5 : 25);
