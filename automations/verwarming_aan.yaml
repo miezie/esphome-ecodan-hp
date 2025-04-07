@@ -1,0 +1,20 @@
+alias: Verwarming aan
+description: ""
+triggers:
+  - trigger: numeric_state
+    entity_id:
+      - sensor.ecodan_heatpump_zone_1_room_temp
+    for:
+      hours: 1
+      minutes: 0
+      seconds: 0
+    below: 20.5
+conditions: []
+actions:
+  - action: select.select_option
+    metadata: {}
+    data:
+      option: Heat Target Temperature
+    target:
+      entity_id: select.ecodan_heatpump_selected_operating_mode
+mode: single
