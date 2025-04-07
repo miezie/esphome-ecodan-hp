@@ -1,0 +1,30 @@
+alias: Verwarmingsmodus corrigeren
+description: ""
+mode: single
+triggers:
+  - entity_id:
+      - select.ecodan_heatpump_selected_operating_mode
+    from: null
+    to: Heat Compensation Curve
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    trigger: state
+  - entity_id:
+      - select.ecodan_heatpump_selected_operating_mode
+    from: null
+    to: Heat Flow Temperature
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    trigger: state
+conditions: []
+actions:
+  - action: select.select_option
+    metadata: {}
+    data:
+      option: Heat Target Temperature
+    target:
+      entity_id: select.ecodan_heatpump_selected_operating_mode
