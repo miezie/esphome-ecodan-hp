@@ -1,0 +1,134 @@
+alias: Warmtepomp verbruik naar energy dashboard
+description: ""
+mode: parallel
+trace:
+  stored_traces: 10
+triggers:
+  - entity_id:
+      - sensor.ecodan_heatpump_dhw_consumed
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    id: dhw
+    trigger: state
+  - entity_id:
+      - sensor.ecodan_heatpump_heating_consumed
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    id: heating
+    trigger: state
+  - entity_id:
+      - sensor.ecodan_heatpump_cool_consumed
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    id: cooling
+    trigger: state
+  - entity_id:
+      - sensor.ecodan_heatpump_dhw_delivered
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    id: dhw_delivered
+    trigger: state
+  - entity_id:
+      - sensor.ecodan_heatpump_heating_delivered
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    id: heating_delivered
+    trigger: state
+  - entity_id:
+      - sensor.ecodan_heatpump_cool_delivered
+    for:
+      hours: 0
+      minutes: 1
+      seconds: 0
+    id: cooling_delivered
+    trigger: state
+actions:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: dhw
+          - condition: time
+            after: "23:50:00"
+            before: "23:59:50"
+        sequence:
+          - data:
+              entity_id: input_number.ecodan_energy_used_dhw
+              value: >-
+                {{ states('input_number.ecodan_energy_used_dhw') | float +
+                states('sensor.ecodan_heatpump_dhw_consumed') | float }}
+            action: input_number.set_value
+      - conditions:
+          - condition: trigger
+            id: heating
+          - condition: time
+            after: "23:50:00"
+            before: "23:59:50"
+        sequence:
+          - data:
+              entity_id: input_number.ecodan_energy_used_heating
+              value: >-
+                {{ states('input_number.ecodan_energy_used_heating') | float +
+                states('sensor.ecodan_heatpump_heating_consumed') | float }}
+            action: input_number.set_value
+      - conditions:
+          - condition: trigger
+            id: cooling
+          - condition: time
+            after: "23:50:00"
+            before: "23:59:50"
+        sequence:
+          - data:
+              entity_id: input_number.ecodan_energy_used_cooling
+              value: >-
+                {{ states('input_number.ecodan_energy_used_cooling') | float +
+                states('sensor.ecodan_heatpump_cool_consumed') | float }}
+            action: input_number.set_value
+      - conditions:
+          - condition: trigger
+            id: dhw_delivered
+          - condition: time
+            after: "23:50:00"
+            before: "23:59:50"
+        sequence:
+          - data:
+              entity_id: input_number.ecodan_energy_produced_dhw
+              value: >-
+                {{ states('input_number.ecodan_energy_produced_dhw') | float +
+                states('sensor.ecodan_heatpump_dhw_delivered') | float }}
+            action: input_number.set_value
+      - conditions:
+          - condition: trigger
+            id: heating_delivered
+          - condition: time
+            after: "23:50:00"
+            before: "23:59:50"
+        sequence:
+          - data:
+              entity_id: input_number.ecodan_energy_produced_heating
+              value: >-
+                {{ states('input_number.ecodan_energy_produced_heating') | float
+                + states('sensor.ecodan_heatpump_heating_delivered') | float }}
+            action: input_number.set_value
+      - conditions:
+          - condition: trigger
+            id: cooling_delivered
+          - condition: time
+            after: "23:50:00"
+            before: "23:59:50"
+        sequence:
+          - data:
+              entity_id: input_number.ecodan_energy_produced_cooling
+              value: >-
+                {{ states('input_number.ecodan_energy_produced_cooling') | float
+                + states('sensor.ecodan_heatpump_cool_delivered') | float }}
+            action: input_number.set_value
