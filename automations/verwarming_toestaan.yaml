@@ -1,0 +1,16 @@
+alias: Verwarming toestaan
+description: ""
+triggers:
+  - trigger: time
+    at: "09:00:00"
+  - trigger: time
+    at: "21:00:00"
+conditions: []
+actions:
+  - action: switch.turn_off
+    metadata: {}
+    data: {}
+    target:
+      entity_id:
+        - switch.ecodan_heatpump_server_control_zone_1_prohibit_heating
+mode: single
