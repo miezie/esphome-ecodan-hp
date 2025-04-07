@@ -1,0 +1,16 @@
+alias: SWW normaal setpoint na verwarmen
+description: ""
+triggers:
+  - trigger: time
+    at: "16:00:00"
+  - trigger: time
+    at: "04:00:00"
+conditions: []
+actions:
+  - action: climate.set_temperature
+    metadata: {}
+    data:
+      temperature: 48
+    target:
+      entity_id: climate.ecodan_heatpump_dhw_climate
+mode: single
