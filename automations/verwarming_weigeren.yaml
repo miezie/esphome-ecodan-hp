@@ -1,0 +1,19 @@
+alias: Verwarming weigeren
+description: ""
+triggers:
+  - trigger: time
+    at: "06:00:00"
+  - trigger: time
+    at: "17:00:00"
+conditions:
+  - condition: numeric_state
+    entity_id: sensor.temperatuur_dag_vooruitzicht
+    above: 5
+actions:
+  - action: switch.turn_on
+    metadata: {}
+    data: {}
+    target:
+      entity_id:
+        - switch.ecodan_heatpump_server_control_zone_1_prohibit_heating
+mode: single
