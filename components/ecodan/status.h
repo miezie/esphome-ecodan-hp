@@ -73,6 +73,9 @@ namespace ecodan
         uint8_t DipSwitch5{0};
         uint8_t DipSwitch6{0};
 
+        // refrigerant code
+        uint8_t RefrigerantCode = 255;
+
         // datime of controller
         struct tm ControllerDateTime = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -154,6 +157,8 @@ namespace ecodan
 
         // Efficiency
         uint8_t CompressorFrequency {0};
+        //uint8_t CompressorOperatingLevel {0};
+        bool CompressorOn = false;
         float EnergyConsumedHeating;
         float EnergyConsumedCooling;
         float EnergyDeliveredHeating;

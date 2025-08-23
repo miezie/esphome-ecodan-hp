@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix: 
-        lang: [en, nl, es, fr, it]
+        lang: [en, nl, es, fr, it, de, fi]
         board: [esp32s3, esp32s3-proxy2]
         zone: [z1, z2]
     steps:
@@ -32,7 +32,8 @@ jobs:
         run: |
           sed "s/esp32s3.yaml,/${{ matrix.board }}.yaml,/g; \
               s/ecodan-labels-en.yaml,/ecodan-labels-${{ matrix.lang }}.yaml,/g; \
-              s/#confs\\/esp32s3-led.yaml/confs\/esp32s3-led.yaml/g" ecodan-esphome.yaml > build.yaml
+              s/#confs\\/esp32s3-led.yaml/confs\/esp32s3-led.yaml/g; \
+              s/confs\\/wifi.yaml/confs\/wifi-ota.yaml/g" ecodan-esphome.yaml > build.yaml
           sed "s/manifest/$MANIFEST/g; s/VERSION/$PREFIX/g" confs/ota.yaml > ota.yaml
           echo "<<: !include ota.yaml" >> build.yaml
 
@@ -40,7 +41,8 @@ jobs:
         name: adjust build.yaml for 2 zones
         run: |
           cat build.yaml
-          sed -i "s/#confs\\/zone2.yaml/confs\/zone2.yaml/g" build.yaml
+          sed -i "s/#confs\\/zone2.yaml/confs\/zone2.yaml/g; \
+              s/#confs\\/server-control-z2.yaml/confs\/server-control-z2.yaml/g" build.yaml
 
       - name: Generated yaml
         run: |
@@ -61,7 +63,7 @@ jobs:
           python -m venv venv
           source venv/bin/activate
           pip install wheel
-          pip install esphome
+          pip install esphome==2025.7.5
 
       - name: Build firmware
         env:

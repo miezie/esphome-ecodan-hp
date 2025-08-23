@@ -50,6 +50,7 @@ substitutions:
   boiler_return_temp: Temp retour ballon
   status_booster: Statut réchauffeur élec
   compressor_frequency: Freq Compresseur
+  status_compressor: Compresseur
   controller_version_text: Version Controleur
   controller_firmware_text: Firmware Controleur
   controller_datetime_text: Date du Controleur
@@ -100,8 +101,8 @@ substitutions:
   hp_refrigerant_temp: Temp Liquide Réfrigérant
   hp_refrigerant_condensing_temp: Temp Condensation Liquide Réfrigérant
   hp_return_temp: Temp retour
-  z1_return_temp: Temp retour
-  z2_return_temp: Temp retour
+  z1_return_temp: z1 Temp retour
+  z2_return_temp: z2 Temp retour
   status_water_pump: Statut pompe à eau
   status_water_pump_2: Statut pompe à eau no2
   status_water_pump_3: Statut pompe à eau no3
@@ -114,6 +115,7 @@ substitutions:
   status_multi_zone_zone2: Z2 fonctionne
   fault_code_text: Code d'erreur
   refrigerant_error_code_text: Réfrigérant code d'erreur
+  # refrigerant_code: Réfrigérant
   compressor_starts: Démarrages cumulés du compresseur
   discharge_temp: Température de décharge
   ou_liquid_pipe_temp: Température du tuyau de liquide 1 de l'unité extérieure

@@ -50,6 +50,7 @@ substitutions:
   boiler_return_temp: Temp. Retorno Caldera
   status_booster: Calentador Auxiliar
   compressor_frequency: Frecuencia del Compresor
+  status_compressor: Compresor
   controller_version_text: Versión del Controlador
   controller_firmware_text: Firmware del Controlador
   controller_datetime_text: Fecha del Controlador
@@ -114,6 +115,7 @@ substitutions:
   status_multi_zone_zone2: Z2 en Funcionamiento
   fault_code_text: Código de Falla
   refrigerant_error_code_text: Código de Error del Refrigerante
+  # refrigerant_code: Refrigerante
   compressor_starts: Arranques acumulados del compresor
   discharge_temp: Temperatura de descarga
   ou_liquid_pipe_temp: Tubo de líquido de la unidad exterior 1 Temperatura
